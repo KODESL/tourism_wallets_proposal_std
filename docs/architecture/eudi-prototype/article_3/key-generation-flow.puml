@@ -1,0 +1,60 @@
+@startuml Key Generation Flow
+!theme plain
+skinparam backgroundColor #ffffff
+skinparam defaultTextAlignment center
+
+participant "Application" as app
+participant "@noble/curves" as noble
+participant "Secure Storage" as storage
+database "Keychain/KeyStore" as ks
+
+== Key Generation Flow ==
+
+app -> noble: randomPrivateKey()
+note right of noble
+  Generate 32 bytes of
+  cryptographically secure entropy
+  from crypto.getRandomValues()
+end note
+
+noble -> noble: Validate entropy\n(1 ≤ key < curve order)
+noble --> app: privateKey (32 bytes)
+
+app -> noble: getPublicKey(privateKey, false)
+note right of noble
+  Derive public key from private key
+  Uncompressed format:
+  0x04 + x (32 bytes) + y (32 bytes)
+end note
+noble --> app: publicKey (65 bytes)
+
+app -> app: Convert to JWK format
+note right of app
+  Extract x and y coordinates
+  Base64url encode
+  Create RFC 7517 JWK object
+end note
+app -> app: Generate keyId\n"key-{first8hex}"
+
+== Storage ==
+
+app -> storage: storePrivateKey(keyId, privateKeyHex)
+storage -> ks: Keychain.setGenericPassword()
+note right of ks
+  iOS: Keychain + Secure Enclave
+  Android: KeyStore + StrongBox/TEE
+  Private key never returned
+end note
+ks --> storage: Success
+storage --> app: Done
+
+== Return ==
+
+app --> app: Return {publicKeyJwk, keyId}
+note right of app
+  Public key and keyId sent to caller
+  Private key remains in secure storage
+  Never accessible to application
+end note
+
+@enduml

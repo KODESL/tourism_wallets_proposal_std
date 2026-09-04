@@ -1,0 +1,68 @@
+@startuml DID:key Generation and Resolution
+!theme plain
+skinparam backgroundColor #ffffff
+skinparam defaultTextAlignment center
+
+== Encoding: Public Key → DID:key ==
+
+box "Key Material"
+  participant "Uncompressed Public Key\n0x04 + x (32) + y (32)\n= 65 bytes" as pk
+end box
+
+box "Encoding Steps"
+  participant "Multicodec Prefix\n0x1200 (P-256 identifier)\n+ 65 bytes = 67 bytes" as mc
+  participant "Base58-btc Encoding\n58-char alphabet\n67 bytes → 85-90 chars" as b58
+  participant "DID:key Format\n'did:key:z' + encoded" as fmt
+end box
+
+pk -> mc: Add multicodec\nprefix
+mc -> b58: Encode with\nBase58-btc
+b58 -> fmt: Prepend\nnamespace
+
+fmt --> fmt: "did:key:zDnae..."\n(95-100 characters)
+
+== Decoding: DID:key → DID Document ==
+
+participant "DID:key String" as did
+participant "Parser" as parser
+participant "Base58 Decoder" as decoder
+participant "JWK Converter" as jwk
+participant "Document Generator" as doc
+
+did -> parser: did:key:zDnae...
+parser -> parser: Extract 'z' prefix\nObtain encoded portion
+parser -> decoder: base58.decode(encoded)
+decoder -> decoder: Verify multicodec prefix\n(must be 0x1200)
+decoder --> jwk: Public key bytes (65)
+
+jwk -> jwk: Extract x, y coordinates
+jwk -> jwk: Base64url encode\nx and y
+jwk --> doc: {kty, crv, x, y}
+
+doc -> doc: Build DID Document
+doc --> doc: Complete with:\n- @context\n- id (the DID:key)\n- publicKey array\n- controller
+
+doc --> doc: Return DID Document
+
+== DID Document Output ==
+
+box "DID Document Structure"
+  participant "JSON-LD Format" as jsonld
+end box
+
+jsonld -> jsonld: {
+jsonld -> jsonld: "@context": "https://w3id.org/did/v1",
+jsonld -> jsonld: "id": "did:key:zDnae...",
+jsonld -> jsonld: "publicKey": [{
+jsonld -> jsonld:   "id": "did:key:zDnae...#key-1",
+jsonld -> jsonld:   "type": "JsonWebKey2020",
+jsonld -> jsonld:   "publicKeyJwk": {
+jsonld -> jsonld:     "kty": "EC",
+jsonld -> jsonld:     "crv": "P-256",
+jsonld -> jsonld:     "x": "...",
+jsonld -> jsonld:     "y": "..."
+jsonld -> jsonld:   }
+jsonld -> jsonld: }]
+jsonld -> jsonld: }
+
+@enduml

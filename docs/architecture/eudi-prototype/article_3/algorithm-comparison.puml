@@ -1,0 +1,52 @@
+@startuml ES256 vs RSA vs EdDSA Comparison
+!theme plain
+skinparam backgroundColor #ffffff
+skinparam defaultTextAlignment center
+
+rectangle "RSA-2048\n(Rivest-Shamir-Adleman)" as RSA #ffcccc {
+  note right
+    **Key Size:** 2048 bits (256 bytes)
+    **Gen Time:** 800-1200ms (Too slow for mobile)
+    **Sign Time:** 80-120ms
+    **Key Storage:** ~3-4 KB in JWK
+  end note
+}
+
+rectangle "EdDSA (Ed25519)\n(Edwards Curve)" as ED #ffffcc {
+  note right
+    **Key Size:** 256 bits (32 bytes)
+    **Gen Time:** 5-10ms (Very fast)
+    **Sign Time:** 25-35ms (Fastest)
+    **Key Storage:** ~500 bytes in JWK
+  end note
+}
+
+rectangle "ES256 (ECDSA P-256)\n**CHOSEN FOR EUDI**" as ES256 #ccffcc {
+  note right
+    **Key Size:** 256 bits (32 bytes)
+    **Gen Time:** 25-30ms (Balanced)
+    **Sign Time:** 35-50ms (Good)
+    **Key Storage:** ~500 bytes in JWK
+  end note
+}
+
+rectangle "Decision Criteria" as criteria #e0e0e0 {
+  note
+    ✓ Regulatory Compliance
+    ✓ Standards Support
+    ✓ Cross-Border Support
+    ✓ Performance
+    ✓ Ecosystem Maturity
+  end note
+}
+
+rectangle "Regulatory Requirements" as reqs #e0e0e0 {
+  note
+    eIDAS 2.0: NIST algorithms
+    OpenID4VCI: ES256 mandatory
+    NIST SP 800-186: P-256 approved
+    EU Regulation: ES256 compliance
+  end note
+}
+
+@enduml

@@ -1,0 +1,103 @@
+@startuml EUDI_Presentation_Swimlanes
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam swimlaneWidth 400
+skinparam activityBackgroundColor #B8D4E0
+skinparam activityBorderColor #2C5F77
+
+title OpenID4VP Credential Presentation Flow
+
+|Wallet (User Device)|
+start
+:Scan QR code\nopenid4vp:// URI;
+note right
+  **Privacy control point**
+  User initiated action
+  No passive disclosure
+end note
+
+:Parse presentation request;
+:Download presentation_definition\nfrom request_uri;
+
+:Match credentials using JSONPath\n""$.type"" contains ""VerifiableId"";
+note right
+  **Privacy control point**
+  Only matching credentials shown
+  User sees what will be shared
+end note
+
+:User selects credential\nand approves disclosure;
+
+:Filter SD-JWT disclosures\nto minimum required fields;
+note right
+  **Privacy control point**
+  Selective disclosure
+  Only requested attributes
+end note
+
+:Calculate sd_hash\nfrom selected disclosures;
+
+:Create key-binding JWT\nwith sd_hash, nonce, aud;
+note right
+  **Security checkpoint**
+  Cryptographic binding
+  Prevents replay attacks
+end note
+
+:Build vp_token with\nSD-JWT + filtered disclosures + KB-JWT;
+
+:Create presentation_submission\nwith descriptor_map;
+
+|Verifier (Relying Party)|
+:Receive POST to response_uri\nwith vp_token and submission;
+
+:Validate key-binding JWT\nsignature and claims;
+note left
+  **Security checkpoint**
+  Verify wallet key ownership
+  Check nonce freshness
+end note
+
+:Extract SD-JWT and disclosures\nfrom vp_token;
+
+:Verify SD-JWT issuer signature;
+note left
+  **Security checkpoint**
+  Trust chain validation
+  Issuer authenticity
+end note
+
+:Validate sd_hash matches\nincluded disclosures;
+note left
+  **Security checkpoint**
+  Integrity verification
+  Tamper detection
+end note
+
+:Check credential expiration\nand revocation status;
+
+:Extract claims from\nselected disclosures;
+
+:Return success response\nwith redirect_uri;
+
+|Wallet (User Device)|
+:Display verification result;
+note right
+  **Total time: ~1-2 seconds**
+
+  **Privacy guarantees**
+  - Selective disclosure (user control)
+  - No issuer notification
+  - No correlation between verifiers
+  - Minimal data transfer
+
+  **Security guarantees**
+  - Cryptographic key binding
+  - Replay attack prevention
+  - Tamper detection
+  - Issuer signature validation
+end note
+stop
+
+@enduml

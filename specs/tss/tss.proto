@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package tourism.tss;
+
+option go_package = "github.com/KODESL/tourism_wallets_proposal_std/specs/tss";
+
+// Interface-only extract of a 2-of-3 threshold signature service.
+// Provenance: bogo-ncw/packages/tss-service/proto/tss.proto
+// The Go TSS server, Binance tss-lib implementation, and share-custody
+// backend are product and are not copied.
+
+service TSSService {
+  rpc Keygen(KeygenRequest) returns (KeygenResponse);
+  rpc Sign(SignRequest) returns (SignResponse);
+  rpc GetPublicKey(GetPublicKeyRequest) returns (GetPublicKeyResponse);
+  rpc CooperativeSign(CooperativeSignRequest) returns (SignResponse);
+}
+
+message CooperativeSignRequest {
+  string wallet_id = 1;
+  bytes message_hash = 2;
+  bytes share_0 = 3;
+  bytes share_1 = 4;
+}
+
+message KeygenRequest {
+  string wallet_id = 1;
+  int32 threshold = 2;
+  int32 party_count = 3;
+  int32 party_id = 4;
+}
+
+message KeygenResponse {
+  bool success = 1;
+  string wallet_id = 2;
+  bytes encrypted_share = 3;
+  bytes public_key = 4;
+  string error_message = 5;
+}
+
+message SignRequest {
+  string wallet_id = 1;
+  bytes message_hash = 2;
+  bytes encrypted_share = 3;
+  int32 party_id = 4;
+  repeated int32 signing_parties = 5;
+}
+
+message SignResponse {
+  bool success = 1;
+  bytes signature_r = 2;
+  bytes signature_s = 3;
+  int32 recovery_id = 4;
+  string error_message = 5;
+}
+
+message GetPublicKeyRequest {
+  string wallet_id = 1;
+  bytes encrypted_share = 2;
+}
+
+message GetPublicKeyResponse {
+  bool success = 1;
+  bytes public_key = 2;
+  string error_message = 3;
+}

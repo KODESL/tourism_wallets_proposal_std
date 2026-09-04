@@ -1,0 +1,80 @@
+@startuml Key Generation Library Trade-offs
+!theme plain
+skinparam backgroundColor #ffffff
+skinparam defaultTextAlignment center
+
+rectangle "@noble/curves\n(Pure JavaScript)" as noble #ccffcc {
+  note
+    ✓ Complete Control
+      - Export to JWK
+      - Integrate with Keychain
+      - Manipulate formats
+
+    ✓ Cross-Platform Consistency
+      - Same code iOS + Android
+      - No platform differences
+      - Deterministic operations
+
+    ✓ Auditability
+      - Trail of Bits audit (2023)
+      - Public cryptographic proofs
+      - No black-box operations
+
+    ✓ No Hardware Differences
+      - Consistent behavior
+      - Predictable performance
+      - No surprises
+
+    ⚠ Performance
+      - Not hardware-accelerated
+      - ~25-30ms generation
+      - Acceptable for mobile
+  end note
+}
+
+rectangle "WebCrypto API\n(Platform Native)" as webcrypto #ffcccc {
+  note
+    ✓ Hardware Acceleration
+      - Fast operations
+      - Platform optimized
+      - Best raw performance
+
+    ✓ Built-in
+      - No dependencies
+      - Available everywhere
+      - Native support
+
+    ✗ Cannot Export Keys
+      - Non-extractable keys locked
+      - Cannot convert to JWK
+      - Black-box format
+
+    ✗ Platform Variations
+      - iOS behavior ≠ Android
+      - Implementation differences
+      - Unpredictable behavior
+
+    ✗ Integration Difficult
+      - Cannot use with Keychain
+      - Cannot access formats
+      - Limited flexibility
+  end note
+}
+
+rectangle "EUDI Decision\nMatrix" as decision #ffffcc {
+  note
+    Priority Ranking:
+
+    1. Complete Control     → @noble/curves wins
+    2. Cross-Platform      → @noble/curves wins
+    3. Auditability         → @noble/curves wins
+    4. Integration Ease     → @noble/curves wins
+    5. Performance Adequate → @noble/curves acceptable
+       (35-50ms vs native ~20ms)
+
+    Conclusion: @noble/curves
+    Control > Speed for EUDI
+  end note
+}
+
+@enduml

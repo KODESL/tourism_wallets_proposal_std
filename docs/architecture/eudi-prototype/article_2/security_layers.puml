@@ -1,0 +1,111 @@
+@startuml EUDI Security Architecture
+
+!define RECTANGLE class
+skinparam componentStyle rectangle
+skinparam backgroundColor #FEFEFE
+
+title EUDI Wallet - Defense in Depth Security Architecture
+
+package "Layer 5: Zero-Trust Verification" #FFE0E0 {
+    component [Verify Every Operation] as L5_Verify
+    note right of L5_Verify
+        • Validate key existence before signing
+        • Verify credential expiry on every query
+        • Check JWT signatures
+        • Validate issuer metadata
+    end note
+}
+
+package "Layer 4: Storage Encryption" #FFECB3 {
+    component [Hardware-Backed Key Storage] as L4_Hardware
+    component [Database Encryption] as L4_DB
+
+    note bottom of L4_Hardware
+        **iOS:** Secure Enclave (A7+), Keychain
+        **Android:** StrongBox (Titan M), KeyStore TEE
+        **Properties:**
+        • Private keys never leave secure hardware
+        • AES-256-GCM encryption
+        • Biometric protection available
+        • Key accessible only when unlocked
+    end note
+}
+
+package "Layer 3: Data Validation" #E1F5FE {
+    component [Input Validation] as L3_Input
+    component [Business Logic Validation] as L3_Business
+    component [SQL Injection Prevention] as L3_SQL
+}
+
+package "Layer 2: Encryption in Transit" #E8F5E9 {
+    component [HTTPS Enforcement] as L2_HTTPS
+    component [Certificate Pinning] as L2_Pinning
+
+    note bottom of L2_HTTPS
+        **Transport Security**
+        • All APIs use HTTPS (TLS 1.2+)
+        • Certificate validation enabled
+        • No mixed content or HTTP fallback
+        • Modern TLS ciphers only
+    end note
+}
+
+package "Layer 1: Protocol Security" #F3E5F5 {
+    component [PKCE (RFC 7636)] as L1_PKCE
+    component [Proof of Possession] as L1_PoP
+    component [Selective Disclosure] as L1_SD
+
+    note bottom of L1_PKCE
+        **Standards Compliance**
+        • OpenID4VCI 1.0
+        • OpenID4VP 1.0
+        • SD-JWT draft-07
+        • ICAO 9303 (BAC)
+    end note
+}
+
+' Relationships showing layered defense
+L5_Verify -down-> L4_Hardware : validates
+L5_Verify -down-> L4_DB : validates
+
+L4_Hardware -down-> L3_Input : protects
+L4_DB -down-> L3_Business : protects
+
+L3_Input -down-> L2_HTTPS : secured by
+L3_Business -down-> L2_HTTPS : secured by
+L3_SQL -down-> L2_HTTPS : secured by
+
+L2_HTTPS -down-> L1_PKCE : uses
+L2_Pinning -down-> L1_PoP : validates
+
+' Attack surface mapping
+cloud "Attack Surfaces" as Attacks {
+    [Credential Theft\nMitigation: Hardware-backed keys]
+    [Man-in-the-Middle\nMitigation: HTTPS + Pinning]
+    [Replay Attacks\nMitigation: Nonces + KB-JWT]
+    [SQL Injection\nMitigation: Parameterized queries]
+    [Data Leakage\nMitigation: Selective disclosure]
+}
+
+Attacks .up.> L5_Verify : mitigated by all layers
+Attacks .up.> L1_SD
+
+legend bottom
+    **Security Principles**
+    • Defense in Depth (5 layers)
+    • Zero-Trust Architecture
+    • Privacy by Design
+    • Standards Compliance
+    • Hardware Security
+
+    **Threat Model Coverage**
+    ✓ Credential theft
+    ✓ Man-in-the-middle
+    ✓ Replay attacks
+    ✓ SQL injection
+    ✓ Data leakage
+    ✓ Code interception (PKCE)
+    ✓ Unauthorized disclosure
+endlegend
+
+@enduml

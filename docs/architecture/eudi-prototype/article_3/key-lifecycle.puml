@@ -1,0 +1,60 @@
+@startuml Key Lifecycle State Machine
+!theme plain
+skinparam backgroundColor #ffffff
+skinparam defaultTextAlignment center
+skinparam state {
+  BackgroundColor #e1f5ff
+  BorderColor #0277bd
+  FontColor #000000
+}
+
+[*] --> Generated: App Install\nNew Device
+
+Generated --> Active: Key stored\nin Keychain/KeyStore
+note right of Generated
+  Fresh entropy generated
+  Private key stored securely
+  Ready for first use
+end note
+
+Active --> Active: Signing Credentials\nProof of Possession\nDID:key generation
+note right of Active
+  Active operational state
+  Primary use of key
+  Can issue signatures
+  Can create DIDs
+end note
+
+Active --> Retired: Manual rotation\nOR\nKey rollover event
+note right of Active
+  Rotation initiated by:\n- User action\n- Periodic schedule\n- Policy requirement
+end note
+
+Retired --> Retired: Verification Only\nNo new signatures
+note right of Retired
+  Can verify old credentials
+  Can resolve DIDs
+  Cannot sign new data
+  Archive period: 30 days
+end note
+
+Retired --> Deleted: 30-day grace period\nexpires
+note right of Retired
+  Allows time for:\n- Certificate verification\n- Credential validation\n- Final operations
+end note
+
+Deleted --> [*]: Securely erased\nfrom Keychain/KeyStore
+note right of Deleted
+  Permanent deletion
+  No recovery possible
+  Cryptographic erasure
+end note
+
+Active --> Deleted: Device Wipe\nManual Deletion
+note right of Active
+  Force delete (emergency)
+  Immediate removal
+  All keys lost
+end note
+
+@enduml

@@ -1,0 +1,154 @@
+@startuml EUDI Component Interaction
+
+skinparam sequence {
+    ParticipantBackgroundColor #E3F2FD
+    ParticipantBorderColor #1976D2
+    ActorBackgroundColor #FFF3E0
+    ActorBorderColor #F57C00
+    ArrowColor #424242
+    LifeLineBorderColor #BDBDBD
+}
+
+title EUDI Wallet - Component Interaction Flow\nCredential Issuance & Presentation
+
+actor User
+participant "App.tsx\n(UI)" as UI
+participant "OpenID4VCIClient\n(Issuance)" as VCI
+participant "KeyManager\n(Crypto)" as KeyMgr
+participant "CredentialStore\n(Repository)" as Store
+participant "DnieReader\n(NFC)" as NFC
+participant "OpenID4VPClient\n(Presentation)" as VP
+participant "Metrics\n(Telemetry)" as Metrics
+
+== Credential Issuance Flow ==
+
+User -> UI : Scans QR code
+activate UI
+
+UI -> VCI : issueCredential(offerUri)
+activate VCI
+
+VCI -> Metrics : time("Fetch Metadata")
+VCI -> VCI : Parse offer\nFetch issuer metadata
+VCI --> Metrics : 250ms
+
+VCI -> KeyMgr : generateKeyPair()
+activate KeyMgr
+KeyMgr -> Metrics : time("Key Generation")
+KeyMgr -> KeyMgr : Generate ES256 key
+KeyMgr -> KeyMgr : Store in Keychain
+KeyMgr --> Metrics : 25ms
+KeyMgr --> VCI : { publicKeyJwk, keyId }
+deactivate KeyMgr
+
+VCI -> VCI : Generate PKCE\n(code_verifier, S256 challenge)
+
+VCI -> VCI : Authorization request\n(User authenticates)
+
+VCI -> KeyMgr : sign(keyId, proofPayload)
+activate KeyMgr
+KeyMgr -> Metrics : time("Sign Proof JWT")
+KeyMgr -> KeyMgr : SHA-256 + ECDSA
+KeyMgr --> Metrics : 35ms
+KeyMgr --> VCI : signature
+deactivate KeyMgr
+
+VCI -> VCI : Request credential\n(with PoP JWT)
+
+VCI -> VCI : Parse SD-JWT\n(jwt~disclosure~...)
+
+VCI -> Store : storeCredential(credential)
+activate Store
+Store -> Metrics : time("Store Credential")
+Store -> Store : INSERT OR REPLACE\n(indexed table)
+Store --> Metrics : 15ms
+Store --> VCI : success
+deactivate Store
+
+VCI --> UI : Credential issued
+deactivate VCI
+UI --> User : Show success
+deactivate UI
+
+== NFC Card Reading Flow ==
+
+User -> UI : Scans DNIe/NIE
+activate UI
+
+UI -> UI : Show MRZ scanner
+
+User -> UI : Enters MRZ data\n(or scans camera)
+
+UI -> NFC : scanCard(mrzData)
+activate NFC
+
+NFC -> Metrics : time("NFC Read")
+NFC -> NFC : BAC authentication\nRead DG1, DG2, DG11\nVerify signatures
+NFC --> Metrics : 3200ms
+
+NFC --> UI : { documentData, photo }
+deactivate NFC
+
+UI -> VCI : Enrich credential\n(with verified data)
+UI --> User : Show card data
+deactivate UI
+
+== Credential Presentation Flow ==
+
+User -> UI : Scans verifier QR
+activate UI
+
+UI -> VP : presentCredential(requestUri)
+activate VP
+
+VP -> VP : Parse presentation request\nFetch request object
+
+VP -> Store : getCredentialsByType(type)
+activate Store
+Store -> Metrics : time("Query Credentials")
+Store -> Store : SELECT with index\nFilter expired
+Store --> Metrics : 3ms
+Store --> VP : matching credentials
+deactivate Store
+
+VP -> VP : Evaluate presentation definition\nExtract requested fields\n**Selective Disclosure**
+
+VP -> VP : Filter disclosures\n(Privacy by design)
+
+VP -> KeyMgr : sign(keyId, kbPayload)
+activate KeyMgr
+KeyMgr -> Metrics : time("Sign KB-JWT")
+KeyMgr -> KeyMgr : SHA-256 + ECDSA
+KeyMgr --> Metrics : 35ms
+KeyMgr --> VP : signature
+deactivate KeyMgr
+
+VP -> VP : Construct VP Token\njwt~disclosure~kb-jwt
+
+VP -> VP : Submit presentation\nto verifier
+
+VP --> UI : Presentation accepted
+deactivate VP
+
+UI --> User : Show verification result
+deactivate UI
+
+note over Metrics
+    **Performance Metrics**
+    • Key Generation: 25ms
+    • Signature: 35ms
+    • Storage: 15ms
+    • Query: 3ms
+    • NFC Read: 2-4s
+    • Metadata Fetch: 250ms
+end note
+
+note over VP
+    **Selective Disclosure**
+    Only requested fields disclosed
+    90% data reduction typical
+    Verifier cannot request more
+    Issuer cannot track presentations
+end note
+
+@enduml

@@ -1,0 +1,47 @@
+@startuml EUDI_Compliance_Matrix
+
+skinparam backgroundColor white
+skinparam shadowing false
+
+title EUDI Wallet - Standards Compliance Matrix
+
+salt
+{
+  {T
+    <b>Component</b> | <b>Standard</b> | <b>Version</b> | <b>Level</b> | <b>Status</b>
+    Issuance | OpenID4VCI | 1.0 | Complete | <color:green>✓ Implemented</color>
+    Presentation | OpenID4VP | 1.0 | Complete | <color:green>✓ Implemented</color>
+    Selective Disclosure | SD-JWT | draft-07 | Complete | <color:green>✓ Implemented</color>
+    Key Management | JWK / JWS | RFC 7517/7515 | Complete | <color:green>✓ Implemented</color>
+    DID Method | did:key | ED25519 | Complete | <color:green>✓ Implemented</color>
+    DNIe Reading | ICAO 9303 | Part 1-11 | Partial | <color:orange>⚠ BAC + DG1/2/11</color>
+    DNIe Verification | CSCA/DS Certs | ICAO PKI | Partial | <color:orange>⚠ SOD validation</color>
+    EU Framework | ARF | 1.4.0 | Aligned | <color:green>✓ Architecture</color>
+    Regulation | eIDAS 2.0 | EUDI Wallet | Aligned | <color:green>✓ Principles</color>
+    Key Attestation | Android KeyAttestation | API 31+ | Planned | <color:gray>◯ Roadmap Q2</color>
+    Biometric Auth | iOS LocalAuth | TouchID/FaceID | Planned | <color:gray>◯ Roadmap Q2</color>
+    Database Encryption | SQLCipher | 4.x | Planned | <color:gray>◯ Roadmap Q3</color>
+    Certificate Pinning | OWASP | TLS Pinning | Planned | <color:gray>◯ Roadmap Q3</color>
+  }
+}
+
+note right
+  **Legend**
+  <color:green>✓ Implemented</color> - Fully compliant in production code
+  <color:orange>⚠ Partial</color> - Core functionality complete, extensions pending
+  <color:gray>◯ Planned</color> - In roadmap, not yet implemented
+
+  **Audit Trail**
+  Last updated: 2025-01-15
+  Codebase version: main@244797f
+  React Native: 0.73.9
+  TypeScript: 5.3.3
+
+  **External Validation**
+  - ARF alignment self-assessed
+  - ICAO 9303 tested with Spanish DNIe 4.0
+  - OpenID specs validated against test suites
+  - Awaiting formal certification process
+end note
+
+@enduml

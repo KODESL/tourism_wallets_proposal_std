@@ -1,0 +1,65 @@
+@startuml EUDI_Performance_Metrics
+
+skinparam backgroundColor white
+skinparam shadowing false
+
+title EUDI Wallet - Performance Benchmarks
+
+salt
+{
+  {T
+    <b>Operation</b> | <b>iOS 13+</b> | <b>Android 8.0+</b> | <b>Target</b> | <b>Status</b>
+    Key Generation (ES256) | 95ms | 120ms | <150ms | <color:green>✓</color>
+    Signature (ES256) | 35ms | 48ms | <50ms | <color:green>✓</color>
+    Credential Store (insert) | 82ms | 95ms | <100ms | <color:green>✓</color>
+    Credential Query (by type) | 15ms | 22ms | <30ms | <color:green>✓</color>
+    SD-JWT Parse + Validate | 110ms | 135ms | <200ms | <color:green>✓</color>
+    Key Binding JWT Creation | 45ms | 58ms | <100ms | <color:green>✓</color>
+    OpenID4VCI Full Flow | 3.2s | 3.8s | <5s | <color:green>✓</color>
+    OpenID4VP Full Flow | 1.1s | 1.4s | <2s | <color:green>✓</color>
+    NFC DNIe Read (DG1+DG2) | 4.5s | 5.2s | <8s | <color:green>✓</color>
+    MRZ Scan (Camera) | 2.1s | 2.3s | <3s | <color:green>✓</color>
+  }
+}
+
+note right
+  **Test Environment**
+  - iOS: iPhone 12 Pro, iOS 15.6
+  - Android: Pixel 5, Android 12
+  - Network: WiFi 50Mbps
+  - Iterations: 100 runs per operation
+  - Values: median (p50)
+
+  **Performance Factors**
+  - Hardware-backed keys add ~50ms overhead
+  - Network latency not included in crypto ops
+  - SQLite queries use indexed lookups
+  - NFC timing varies by card firmware
+  - Camera MRZ depends on lighting conditions
+end note
+
+note bottom
+  **Optimization Strategies**
+
+  **Key Management**
+  - Reuse KeyManager instance across app lifecycle
+  - Cache public JWK to avoid repeated exports
+  - Prefer Secure Enclave/StrongBox over software keys
+
+  **Database**
+  - Composite indexes for common query patterns
+  - Periodic VACUUM to reclaim space
+  - Limit credential metadata size
+
+  **UI Responsiveness**
+  - Async operations in background threads
+  - Lazy load credential images (DG2)
+  - Skeleton screens during network calls
+
+  **Network**
+  - Connection pooling for OpenID flows
+  - Cache issuer metadata (TTL 24h)
+  - Retry with exponential backoff
+end note
+
+@enduml

@@ -1,0 +1,127 @@
+@startuml EUDI Wallet System Architecture
+!define RECTANGLE class
+
+skinparam componentStyle rectangle
+skinparam backgroundColor #FEFEFE
+skinparam component {
+    BackgroundColor<<presentation>> #E3F2FD
+    BackgroundColor<<business>> #FFF3E0
+    BackgroundColor<<data>> #E8F5E9
+    BackgroundColor<<native>> #F3E5F5
+    BorderColor #424242
+    FontSize 11
+}
+
+title EUDI Wallet - 4-Layer System Architecture
+
+package "Presentation Layer" <<presentation>> {
+    [App.tsx\n(Main Controller)] as App
+    [MRZScannerView\n(Camera UI)] as MRZScanner
+    [MetricsScreen\n(Performance)] as Metrics
+}
+
+package "Business Logic Layer" <<business>> {
+    [KeyManager\n(ES256 Crypto)] as KeyMgr
+    [OpenID4VCIClient\n(Issuance)] as VCI
+    [OpenID4VPClient\n(Presentation)] as VP
+    [Metrics Collector\n(Telemetry)] as MetricsCollector
+}
+
+package "Data Layer" <<data>> {
+    database "CredentialStore\n(SQLite Repository)" as Store {
+        frame "Schema" {
+            [credentials table\n+ indexes]
+        }
+    }
+    storage "Keychain/KeyStore\n(Secure Storage)" as Keychain {
+        [Private Keys\n(Hardware-backed)]
+        [DB Encryption Key]
+    }
+}
+
+package "Native Layer" <<native>> {
+    component "iOS Native" as iOS {
+        [DnieReaderModule.swift\n(CoreNFC)]
+        [MRZCameraView.swift\n(Vision OCR)]
+        [CertificateManager.swift\n(CSCA Certs)]
+    }
+    component "Android Native" as Android {
+        [DnieReaderModule.kt\n(NfcAdapter + JMRTD)]
+        [MRZCameraView.kt\n(CameraX + ML Kit)]
+        [MRZScannerModule.kt\n(Text Recognition)]
+    }
+}
+
+' Presentation → Business Logic
+App --> KeyMgr : manages
+App --> VCI : triggers issuance
+App --> VP : triggers presentation
+MRZScanner --> iOS : uses camera
+MRZScanner --> Android : uses camera
+
+' Business Logic → Data
+VCI --> KeyMgr : signs proofs
+VP --> KeyMgr : signs KB-JWT
+VCI --> Store : stores credentials
+VP --> Store : queries credentials
+KeyMgr --> Keychain : stores private keys
+Store --> Keychain : retrieves DB key
+
+' Business Logic → Native
+VCI ..> iOS : NFC card reading
+VCI ..> Android : NFC card reading
+App ..> iOS : camera access
+App ..> Android : camera access
+
+' Cross-cutting
+MetricsCollector .up.> App : observes
+MetricsCollector .up.> VCI : observes
+MetricsCollector .up.> VP : observes
+MetricsCollector .up.> KeyMgr : observes
+
+note right of KeyMgr
+  **Cryptography**
+  • ES256 (P-256 + SHA-256)
+  • @noble/curves library
+  • Hardware-backed storage
+  • DID:key generation
+end note
+
+note right of Store
+  **Repository Pattern**
+  • Indexed queries
+  • Automatic expiry
+  • Encryption at rest
+  • ACID transactions
+end note
+
+note bottom of iOS
+  **iOS Stack**
+  • CoreNFC (NFC reading)
+  • Vision (OCR)
+  • Keychain (Secure Enclave)
+  • Swift 5.9+
+end note
+
+note bottom of Android
+  **Android Stack**
+  • NfcAdapter + JMRTD
+  • ML Kit (OCR)
+  • KeyStore (StrongBox)
+  • Kotlin 1.9+
+end note
+
+legend right
+    |<#E3F2FD>| Presentation Layer |
+    |<#FFF3E0>| Business Logic Layer |
+    |<#E8F5E9>| Data Layer |
+    |<#F3E5F5>| Native Layer |
+
+    **Key Principles:**
+    • Unidirectional dependencies
+    • Clear layer boundaries
+    • Dependency injection
+    • Cross-platform sharing (~70%)
+endlegend
+
+@enduml

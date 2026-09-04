@@ -1,0 +1,86 @@
+@startuml Defense in Depth for Keys
+!theme plain
+skinparam backgroundColor #ffffff
+skinparam defaultTextAlignment center
+
+package "Layer 5: Verification Security" #ff9999 {
+  component "Signature Verification\nBefore Storage" as l5_1
+  component "Key Existence\nValidation" as l5_2
+  component "Certificate Chain\nVerification" as l5_3
+  note right of l5_1
+    Every credential verified
+    against issuer public key
+  end note
+}
+
+package "Layer 4: Operational Security" #ffcc99 {
+  component "Key Lifecycle\nManagement" as l4_1
+  component "Automatic\nKey Rotation" as l4_2
+  component "Secure Key\nDeletion" as l4_3
+  note right of l4_1
+    Generated → Active → Retired → Deleted
+    30-day grace periods
+    Clean erasure protocols
+  end note
+}
+
+package "Layer 3: Storage Security" #ffff99 {
+  component "Hardware-Backed Keys\nSecure Enclave/StrongBox" as l3_1
+  component "AES-256-GCM\nEncryption" as l3_2
+  component "Access Control\nWHEN_UNLOCKED" as l3_3
+  note right of l3_1
+    iOS: Secure Enclave (A7+)
+    Android: StrongBox (Pixel 3+)
+    Private key never accessible
+  end note
+}
+
+package "Layer 2: Cryptographic Strength" #ccffcc {
+  component "P-256 Elliptic Curve\n(128-bit symmetric equiv)" as l2_1
+  component "SHA-256\nHashing" as l2_2
+  component "ECDSA Signature\nValidation" as l2_3
+  note right of l2_1
+    NIST approved
+    Cryptographically proven
+    Resistant to known attacks
+  end note
+}
+
+package "Layer 1: Protocol Security" #ccffff {
+  component "PKCE for\nAuthorization Code" as l1_1
+  component "Proof of Possession\nJWT" as l1_2
+  component "Replay Protection\nNonces" as l1_3
+  note right of l1_1
+    Prevents authorization code interception
+    Proves client identity
+    Uses SHA-256 challenge method
+  end note
+}
+
+package "Threat Model Coverage" {
+  component "Threat: Credential Theft" as t1
+  component "Mitigation: Hardware-backed keys" as m1
+  t1 --> m1
+
+  component "Threat: Man-in-the-Middle" as t2
+  component "Mitigation: HTTPS + Certificate Pinning" as m2
+  t2 --> m2
+
+  component "Threat: Replay Attacks" as t3
+  component "Mitigation: Nonces + KB-JWT" as m3
+  t3 --> m3
+
+  component "Threat: SQL Injection" as t4
+  component "Mitigation: Parameterized Queries" as m4
+  t4 --> m4
+
+  component "Threat: Data Leakage" as t5
+  component "Mitigation: Selective Disclosure" as m5
+  t5 --> m5
+
+  component "Threat: Code Interception" as t6
+  component "Mitigation: PKCE" as m6
+  t6 --> m6
+}
+
+@enduml

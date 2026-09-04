@@ -1,0 +1,113 @@
+@startuml EUDI_Security_Layers
+!define LAYER1 #E8F4F8
+!define LAYER2 #B8D4E0
+!define LAYER3 #7BA7BC
+!define LAYER4 #2C5F77
+!define LAYER5 #1A3A4A
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam componentStyle rectangle
+
+title EUDI Wallet - Defense in Depth Security Architecture
+
+rectangle "User Input" as input #FFE4B5 {
+  [QR Codes]
+  [NFC Scans]
+  [User Selections]
+}
+
+package "LAYER 1: Input Validation" as layer1 LAYER1 {
+  component "URI Schema Validation" as uri
+  component "Parameter Sanitization" as sanitize
+  component "Type Checking" as types
+
+  note right of layer1
+    **Controls**
+    - Whitelist allowed schemes
+    - Reject malformed URIs
+    - Validate JSON schemas
+    - Type guards (TypeScript)
+  end note
+}
+
+package "LAYER 2: Protocol Security" as layer2 LAYER2 {
+  component "Signature Verification" as sig
+  component "Nonce Management" as nonce
+  component "PKCE Flow" as pkce
+  component "Expiration Checks" as expiry
+
+  note right of layer2
+    **Controls**
+    - ES256 signature validation
+    - Nonce uniqueness and TTL
+    - PKCE code_challenge verification
+    - Credential and token expiry
+  end note
+}
+
+package "LAYER 3: Data Layer Security" as layer3 LAYER3 {
+  component "Parameterized Queries" as queries
+  component "Index Security" as indexes
+  component "Filesystem Encryption" as fs
+  component "SQLCipher (Planned)" as sqlcipher
+
+  note right of layer3
+    **Controls**
+    - Prevent SQL injection
+    - No PII in indexed columns
+    - OS-level encryption
+    - Table-level encryption planned
+  end note
+}
+
+package "LAYER 4: Cryptographic Layer" as layer4 LAYER4 {
+  component "Hardware-Backed Keys" as hwkeys
+  component "Secure Enclave (iOS)" as enclave
+  component "StrongBox (Android)" as strongbox
+  component "Key Isolation" as isolation
+
+  note right of layer4
+    **Controls**
+    - Private keys never in JS layer
+    - EAL4+ equivalent hardware
+    - Biometric unlock support
+    - Key attestation (planned)
+  end note
+}
+
+package "LAYER 5: Runtime Protection" as layer5 LAYER5 {
+  component "Tampering Detection" as tamper
+  component "Jailbreak Detection" as jailbreak
+  component "Code Obfuscation" as obfuscate
+  component "Certificate Pinning (Planned)" as pinning
+
+  note right of layer5
+    **Controls**
+    - React Native integrity checks
+    - Root/jailbreak detection
+    - ProGuard/R8 (Android)
+    - Pin issuer certificates
+  end note
+}
+
+input -down-> layer1
+layer1 -down-> layer2
+layer2 -down-> layer3
+layer3 -down-> layer4
+layer4 -down-> layer5
+
+note bottom of layer5
+  **Zero Trust Principles**
+  - Never trust, always verify
+  - Assume breach at any layer
+  - Minimize blast radius
+  - Audit all security events
+
+  **Compliance**
+  - ARF 1.4.0 requirements
+  - eIDAS 2.0 LoA High
+  - GDPR data minimization
+end note
+
+@enduml

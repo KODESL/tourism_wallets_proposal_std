@@ -1,0 +1,10 @@
+tourism_wallets_proposal_std
+Copyright 2026 KODE DE HUGO A PEREZ SOLORZANO S.L.
+
+This product includes protocol cores and architecture documentation
+extracted from the EUDI wallet prototype (KODESL/eudi-es) and an
+interface definition extracted from a private TSS service.
+
+The live BOGOWALLET / bogo-ncw product, native mobile apps, Firebase
+configuration, passport CSCA certificates, and customer deployments are
+not included.

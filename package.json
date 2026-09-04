@@ -1,0 +1,13 @@
+{
+  "name": "tourism-wallets-proposal-std",
+  "private": true,
+  "license": "Apache-2.0",
+  "description": "Isolated OSS reference and fellowship packages for StandICT.eu 2029 application 2029-01-1530. Not the BOGOWALLET product.",
+  "workspaces": [
+    "packages/wallet"
+  ],
+  "scripts": {
+    "test": "npm test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  }
+}

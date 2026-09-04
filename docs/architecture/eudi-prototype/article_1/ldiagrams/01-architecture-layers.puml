@@ -1,0 +1,91 @@
+@startuml EUDI_Wallet_Architecture_Layers
+!define LIGHTBLUE #E8F4F8
+!define MEDIUMBLUE #B8D4E0
+!define DARKBLUE #7BA7BC
+!define GRAYBLUE #A8B8C0
+
+skinparam componentStyle rectangle
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+
+title EUDI Wallet - 4 Layer Architecture
+
+package "PRESENTATION LAYER" as presentation LIGHTBLUE {
+  component "App Controller" as app
+  component "MRZ Scan Views" as mrz
+  component "Credential UI" as credui
+}
+
+package "BUSINESS LOGIC LAYER" as business MEDIUMBLUE {
+  component "Crypto Key Manager" as keymanager
+  component "OpenID4VCI Client" as vci
+  component "OpenID4VP Client" as vp
+  component "SD-JWT Handler" as sdjwt
+  component "Protocol Validators" as validators
+}
+
+package "DATA LAYER" as data DARKBLUE {
+  component "Credential Store" as store
+  component "SQLite Engine" as sqlite
+  component "Query Optimizer" as optimizer
+}
+
+package "NATIVE LAYER" as native GRAYBLUE {
+  component "DNIe NFC Reader" as dnie
+  component "MRZ BAC Calculator" as bac
+  component "Secure Enclave (iOS)" as enclave
+  component "StrongBox (Android)" as strongbox
+}
+
+' Unidirectional dependencies
+presentation -down-> business : uses
+business -down-> data : persists
+data -down-> native : secure storage
+
+app -down-> vci
+app -down-> vp
+mrz -down-> bac
+
+vci -down-> keymanager
+vp -down-> keymanager
+sdjwt -down-> validators
+
+keymanager -down-> store
+vci -down-> store
+vp -down-> store
+
+store -down-> sqlite
+sqlite -down-> optimizer
+
+keymanager -down-> enclave
+keymanager -down-> strongbox
+dnie -down-> bac
+
+note right of presentation
+  **React Native 0.73.9**
+  TypeScript 5.3.3
+  UI components only
+end note
+
+note right of business
+  **Core protocols**
+  OpenID4VCI 1.0
+  OpenID4VP 1.0
+  SD-JWT draft-07
+end note
+
+note right of data
+  **Indexed persistence**
+  Expiry management
+  SQLCipher ready
+end note
+
+note right of native
+  **Hardware backed**
+  ICAO 9303 compliant
+  EAL4+ equivalent
+end note
+
+@enduml

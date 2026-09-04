@@ -1,0 +1,105 @@
+@startuml EUDI_Module_Dependencies
+!define COMPONENT #B8D4E0
+!define NATIVE #A8B8C0
+
+skinparam componentStyle rectangle
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam ArrowColor #2C5F77
+skinparam ArrowThickness 2
+
+title EUDI Wallet - Module Dependency Graph
+
+component "KeyManager" as km COMPONENT
+component "OpenID4VCI\nClient" as vci COMPONENT
+component "OpenID4VP\nClient" as vp COMPONENT
+component "CredentialStore" as store COMPONENT
+component "DnieReader" as dnie NATIVE
+component "MRZScanner" as mrz NATIVE
+component "MRZCalculator" as mrzCalc NATIVE
+
+vci -down-> km : uses for proof
+vp -down-> km : uses for key binding
+vci -down-> store : persists credentials
+vp -down-> store : retrieves credentials
+dnie -down-> mrzCalc : derives BAC keys
+mrz -down-> mrzCalc : validates format
+
+note right of km
+  **KeyManager**
+  + generateKeyPair()
+  + sign(keyId, message)
+  + getDidKey(keyId)
+
+  ES256 key generation
+  Hardware-backed signing
+  JWK and DID export
+end note
+
+note right of vci
+  **OpenID4VCI Client**
+  + parseOffer(uri)
+  + authorize(issuer)
+  + requestCredential()
+
+  **Flow:**
+  1. Parse offer
+  2. Discover metadata
+  3. Create proof JWT
+  4. Request credential
+  5. Validate and store
+end note
+
+note right of vp
+  **OpenID4VP Client**
+  + parseRequest(uri)
+  + selectCredentials()
+  + present(credentials)
+
+  **Flow:**
+  1. Parse request
+  2. Match credentials
+  3. Select disclosures
+  4. Create key binding
+  5. Submit presentation
+end note
+
+note left of store
+  **CredentialStore**
+  + store(credential)
+  + getByType(type)
+  + deleteExpired()
+
+  Encrypted SQLite storage
+  Hardware-backed encryption
+end note
+
+note left of dnie
+  **DnieReader**
+  + readDG1()
+  + readDG2()
+  + verifySOD()
+
+  NFC ICAO 9303 reader
+  BAC authentication
+end note
+
+note left of mrz
+  **MRZScanner**
+  + scanMRZ()
+  + parseFields()
+
+  Camera-based OCR
+  Real-time detection
+end note
+
+note bottom of mrzCalc
+  **MRZCalculator**
+  + deriveBACKeys()
+  + validateCheckDigits()
+
+  Check digit validation
+  BAC key derivation
+end note
+
+@enduml

@@ -1,0 +1,168 @@
+@startuml EUDI_Reuse_Checklist
+!define COMPLETE #90EE90
+!define OPTIONAL #FFD700
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam rectangleBackgroundColor white
+skinparam rectangleBorderColor #2C5F77
+
+title EUDI Wallet - Reusable Architecture Checklist
+
+rectangle "**PRESENTATION LAYER**" as presentation {
+  rectangle "React Native setup" as rn COMPLETE
+  rectangle "TypeScript 5.3+ config" as ts COMPLETE
+  rectangle "UI component library" as ui OPTIONAL
+
+  note right of presentation
+    **Reuse**
+    - Project structure and tsconfig
+    - Navigation patterns
+    - State management approach
+
+    **Customize**
+    - Branding and themes
+    - Localization (i18n)
+    - Accessibility features
+  end note
+}
+
+rectangle "**BUSINESS LOGIC LAYER**" as business {
+  rectangle "KeyManager module" as km COMPLETE
+  rectangle "OpenID4VCI client" as vci COMPLETE
+  rectangle "OpenID4VP client" as vp COMPLETE
+  rectangle "SD-JWT handler" as sdjwt COMPLETE
+  rectangle "Protocol validators" as validators COMPLETE
+
+  note right of business
+    **Reuse**
+    - All protocol implementations
+    - Repository pattern structure
+    - Strategy pattern for key storage
+    - Factory pattern for JWT creation
+
+    **Customize**
+    - Issuer-specific metadata
+    - Supported credential types
+    - Presentation definitions
+  end note
+}
+
+rectangle "**DATA LAYER**" as data {
+  rectangle "CredentialStore schema" as schema COMPLETE
+  rectangle "SQLite indexes" as indexes COMPLETE
+  rectangle "Query patterns" as queries COMPLETE
+  rectangle "SQLCipher integration" as cipher OPTIONAL
+
+  note right of data
+    **Reuse**
+    - Database schema and indexes
+    - Parameterized query patterns
+    - Expiry cleanup logic
+
+    **Customize**
+    - Additional metadata fields
+    - Backup/restore strategies
+    - Encryption layer
+  end note
+}
+
+rectangle "**NATIVE LAYER**" as native {
+  rectangle "Keychain wrapper (iOS)" as keychain COMPLETE
+  rectangle "Keystore wrapper (Android)" as keystore COMPLETE
+  rectangle "NFC DNIe reader" as nfc COMPLETE
+  rectangle "MRZ scanner" as mrz COMPLETE
+
+  note right of native
+    **Reuse**
+    - Hardware key storage abstractions
+    - ICAO 9303 BAC implementation
+    - MRZ validation logic
+
+    **Customize**
+    - Support for other ID cards
+    - Additional NFC data groups
+    - Camera optimization
+  end note
+}
+
+rectangle "**SECURITY CONTROLS**" as security {
+  rectangle "Input validation" as input COMPLETE
+  rectangle "Signature verification" as sig COMPLETE
+  rectangle "Zero trust principles" as zt COMPLETE
+  rectangle "Tampering detection" as tamper OPTIONAL
+
+  note right of security
+    **Reuse**
+    - All validation layers
+    - Signature verification flow
+    - Defense in depth approach
+
+    **Customize**
+    - Certificate pinning list
+    - Attestation requirements
+    - Biometric policies
+  end note
+}
+
+rectangle "**TESTING STRATEGY**" as testing {
+  rectangle "Unit test patterns" as unit OPTIONAL
+  rectangle "Integration test fixtures" as fixtures OPTIONAL
+  rectangle "E2E test scenarios" as e2e OPTIONAL
+
+  note right of testing
+    **Reuse**
+    - Test structure and mocks
+    - Fixture data generators
+    - Contract test approach
+
+    **Customize**
+    - Issuer-specific test data
+    - Network stubs
+    - Performance benchmarks
+  end note
+}
+
+presentation -down-> business
+business -down-> data
+data -down-> native
+security -right-> business
+testing -down-> business
+
+legend right
+  |= **Priority** |= **Description** |
+  | <back:COMPLETE>Complete</back> | Ready to reuse as-is |
+  | <back:OPTIONAL>Optional</back> | Enhance or replace |
+endlegend
+
+note bottom
+  **Implementation Checklist**
+
+  **Phase 1: Foundation (Week 1-2)**
+  ☑ Fork or clone base architecture
+  ☑ Configure React Native environment
+  ☑ Set up TypeScript with strict mode
+  ☑ Initialize SQLite database with schema
+
+  **Phase 2: Core Integration (Week 3-4)**
+  ☑ Integrate KeyManager with platform keystores
+  ☑ Configure OpenID4VCI issuer endpoints
+  ☑ Test credential issuance flow end-to-end
+  ☑ Implement CredentialStore queries
+
+  **Phase 3: Security Hardening (Week 5-6)**
+  ☑ Enable SQLCipher table encryption
+  ☑ Implement certificate pinning
+  ☑ Add key attestation validation
+  ☑ Deploy tampering detection
+
+  **Phase 4: Testing & Validation (Week 7-8)**
+  ☑ Run OpenID conformance tests
+  ☑ Perform security audit
+  ☑ Load testing with production volumes
+  ☑ Accessibility compliance check
+
+  **Total effort: 8-10 weeks for production-ready wallet**
+end note
+
+@enduml

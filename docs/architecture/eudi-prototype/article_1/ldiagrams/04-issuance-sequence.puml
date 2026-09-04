@@ -1,0 +1,75 @@
+@startuml EUDI_Issuance_Sequence
+!define WALLET #B8D4E0
+!define ISSUER #A8B8C0
+!define IDP #FFE4B5
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam sequenceArrowThickness 2
+skinparam sequenceLifeLineBorderColor #2C5F77
+skinparam ParticipantPadding 20
+skinparam BoxPadding 10
+
+title OpenID4VCI Credential Issuance Flow
+
+actor User as user
+participant "EUDI Wallet" as wallet WALLET
+participant "Issuer\n(Spanish Gov)" as issuer ISSUER
+participant "Auth Provider\nCl@ve" as idp IDP
+
+== Discovery Phase ==
+user -> wallet : Scan QR offer
+activate wallet
+note right: **~50ms**\nParse URI
+wallet -> issuer : GET /.well-known/openid-credential-issuer
+issuer --> wallet : Metadata (algorithms, endpoints)
+note right: **~200ms**\nNetwork + parse
+
+== Authorization Phase ==
+wallet -> wallet : Generate PKCE\ncode_verifier, code_challenge
+note right: **~20ms**\nRandom generation
+wallet -> idp : Authorize (code_challenge, redirect_uri)
+idp -> user : Request authentication
+user -> idp : Provide credentials
+idp --> wallet : Authorization code
+note right: **~2-5s**\nUser interaction
+
+== Token Exchange ==
+wallet -> issuer : POST /token\n(code, code_verifier)
+issuer -> idp : Validate authorization code
+idp --> issuer : OK
+issuer --> wallet : access_token, c_nonce
+note right: **~300ms**\nToken generation
+
+== Proof of Possession ==
+wallet -> wallet : generateKeyPair()
+note right: **~100ms**\nES256 in Secure Enclave
+wallet -> wallet : Create proof JWT\n(c_nonce, aud, key_id)
+note right: **~50ms**\nSign with private key
+
+== Credential Request ==
+wallet -> issuer : POST /credential\n(access_token, proof_jwt, format: vc+sd-jwt)
+issuer -> issuer : Verify proof JWT\nValidate nonce
+issuer -> issuer : Issue SD-JWT\nwith disclosures
+issuer --> wallet : credential (SD-JWT), c_nonce
+note right: **~500ms**\nIssuance + signing
+
+== Storage ==
+wallet -> wallet : Validate SD-JWT signature
+wallet -> wallet : Parse disclosures
+wallet -> wallet : CredentialStore.store()
+note right: **~100ms**\nSQLite insert + index
+wallet --> user : Credential added ✓
+deactivate wallet
+
+note over wallet, issuer
+  **Total time: ~3-6 seconds**
+  (excluding user authentication)
+
+  **Security checks at each step**
+  - PKCE prevents authorization code interception
+  - Proof JWT binds credential to wallet key
+  - Signature verification before storage
+end note
+
+@enduml

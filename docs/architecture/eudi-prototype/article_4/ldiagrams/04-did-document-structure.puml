@@ -1,0 +1,50 @@
+@startuml did-document-structure
+title W3C DID Document Structure - did:key Example
+
+rectangle "DID Document (JSON)" {
+    rectangle "@context" #E6FFE6 {
+        card "https://www.w3.org/ns/did/v1"
+        card "https://w3id.org/security/suites/jws-2020/v1"
+    }
+
+    rectangle "id" #FFE6E6 {
+        card "did:key:z6MkhaXgBZDvotDkL5257faWLpa6CBu1QoGPAcMULUUi1SLi"
+    }
+
+    rectangle "verificationMethod[]" #E6E6FF {
+        rectangle "Method 1: #key-1" {
+            card "id: did:key:z6Mkha...#key-1"
+            card "type: JsonWebKey2020"
+            card "controller: did:key:z6Mkha..."
+            rectangle "publicKeyJwk" #F0F0F0 {
+                card "kty: EC"
+                card "crv: P-256"
+                card "x: WKn-ZIGevcwGIyyrzFoZNBdaq9_TsqzGl96oc0CWuis"
+                card "y: y77t-RvAHRKTsSGdIYUfweuOvwrvDD-Q3Hv5J0fSKbE"
+            }
+        }
+        note bottom
+            Contains public keys
+            Can have multiple methods
+            did:key always has 1
+        end note
+    }
+
+    rectangle "assertionMethod[]" #FFE6E6 {
+        card "did:key:z6Mkha...#key-1"
+        note right
+            Keys that can sign
+            claims & credentials
+        end note
+    }
+
+    rectangle "authentication[]" #E6FFE6 {
+        card "did:key:z6Mkha...#key-1"
+        note right
+            Keys for auth
+            challenges
+        end note
+    }
+}
+
+@enduml

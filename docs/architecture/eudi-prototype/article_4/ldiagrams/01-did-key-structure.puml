@@ -1,0 +1,45 @@
+@startuml did-key-structure
+title DID:key Encoding Structure - From Public Key to DID
+
+rectangle "Step 1: P-256 Public Key (Uncompressed)" #FFE6E6 {
+    rectangle "0x04 (1 byte)" #FF9999
+    rectangle "X-Coordinate (32 bytes)" #FF9999
+    rectangle "Y-Coordinate (32 bytes)" #FF9999
+    note right
+        Total: 65 bytes
+        Format: 0x04 || x || y
+    end note
+}
+
+rectangle "Step 2: Add Multicodec Prefix" #FFE6CC {
+    rectangle "0x1200 (2 bytes)" #FFCC99
+    note right
+        P-256 Multicodec
+        0x12 = EC family
+        0x00 = Uncompressed
+    end note
+}
+
+rectangle "Step 3: Base58-btc Encoding" #E6F2FF {
+    rectangle "67 bytes → 88 characters" #99CCFF
+    note right
+        Alphabet: 123456789ABC...
+        No 0, O, I, l confusion
+    end note
+}
+
+rectangle "Step 4: Format as DID:key" #E6FFE6 {
+    rectangle "did:key:z" #99FF99
+    rectangle "base58(multicodec + pubkey)" #99FF99
+    note right
+        "z" = Base58-btc indicator
+        Example:
+        did:key:z6MkhaX...
+    end note
+}
+
+"Step 1: P-256 Public Key (Uncompressed)" --> "Step 2: Add Multicodec Prefix"
+"Step 2: Add Multicodec Prefix" --> "Step 3: Base58-btc Encoding"
+"Step 3: Base58-btc Encoding" --> "Step 4: Format as DID:key"
+
+@enduml

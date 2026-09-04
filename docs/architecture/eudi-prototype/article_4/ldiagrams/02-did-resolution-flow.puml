@@ -1,0 +1,42 @@
+@startuml did-resolution-flow
+title DID:key Resolution Flow - From Identifier to DID Document
+
+actor "Application" as app
+participant "DID Resolver\n(Client-side)" as resolver
+database "DID Document\n(Generated)" as output
+
+app -> resolver: resolveDIDKey("did:key:z6Mkha...")
+activate resolver
+
+resolver -> resolver: Parse format
+note right: Validate "did:key:z" prefix
+
+resolver -> resolver: Base58-btc decode
+note right: 88 chars → 67 bytes
+
+resolver -> resolver: Extract multicodec prefix
+note right: Verify 0x1200 (P-256)
+
+resolver -> resolver: Extract public key bytes
+note right: Skip 2-byte prefix\nGet 65 bytes
+
+resolver -> resolver: Validate format
+note right: Must be 0x04 + x (32) + y (32)
+
+resolver -> resolver: Convert to JWK
+note right: Base64url encode x, y\nAdd kty, crv fields
+
+resolver -> output: Generate DID Document
+note right: W3C DID Core v1.0 format\ninclude verificationMethod,\nassertionMethod, etc.
+
+app <- resolver: Return DID Document
+deactivate resolver
+
+note over app
+    DID Document Ready
+    ├─ Public key embedded
+    ├─ Ready for verification
+    └─ No external calls needed
+end note
+
+@enduml

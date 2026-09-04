@@ -1,0 +1,118 @@
+@startuml did-methods-comparison
+title DID Methods Comparison - Key Characteristics
+
+rectangle "did:key\nSelf-Certifying" #FFE6E6 {
+    card "Infrastructure" #FF9999
+    card "Key Rotation" #FF9999
+    card "Resolution" #FF9999
+    card "Privacy" #FF9999
+    card "Best For" #FF9999
+}
+
+note right of Infrastructure
+    None
+    No registry
+    Zero config
+end note
+
+note right of "Key Rotation"
+    Impossible
+    New DID needed
+    if compromised
+end note
+
+note right of "Resolution"
+    0ms (local)
+    Client-side decode
+    No network call
+end note
+
+note right of "Privacy"
+    Excellent
+    No external party
+    learns usage
+end note
+
+note right of "Best For"
+    Ephemeral IDs
+    Holder identifiers
+    Presentations
+end note
+
+rectangle "did:web\nWeb-Based" #FFE6CC {
+    card "Infrastructure" #FFCC99
+    card "Key Rotation" #FFCC99
+    card "Resolution" #FFCC99
+    card "Privacy" #FFCC99
+    card "Best For" #FFCC99
+}
+
+note right of Infrastructure
+    HTTPS server
+    DNS/domain
+    required
+end note
+
+note right of "Key Rotation"
+    Yes
+    Update endpoint
+    Maintain history
+end note
+
+note right of "Resolution"
+    100-500ms
+    HTTP lookup
+    Well-known endpoint
+end note
+
+note right of "Privacy"
+    Weak
+    Resolver sees DID
+    & timestamps
+end note
+
+note right of "Best For"
+    Issuers
+    Verifiers
+    Organizations
+end note
+
+rectangle "did:ion\nBlockchain-Anchored" #E6F2FF {
+    card "Infrastructure" #99CCFF
+    card "Key Rotation" #99CCFF
+    card "Resolution" #99CCFF
+    card "Privacy" #99CCFF
+    card "Best For" #99CCFF
+}
+
+note right of Infrastructure
+    Bitcoin blockchain
+    Sidetree nodes
+    Costs BTC
+end note
+
+note right of "Key Rotation"
+    Yes
+    Full history
+    on-chain
+end note
+
+note right of "Resolution"
+    1-5 seconds
+    Blockchain lookup
+    Cache friendly
+end note
+
+note right of "Privacy"
+    Poor
+    All operations
+    on blockchain
+end note
+
+note right of "Best For"
+    High-assurance
+    Non-repudiation
+    Long-term IDs
+end note
+
+@enduml

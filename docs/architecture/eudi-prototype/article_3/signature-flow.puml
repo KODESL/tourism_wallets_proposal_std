@@ -1,0 +1,93 @@
+@startuml ECDSA Signature Lifecycle
+!theme plain
+skinparam backgroundColor #ffffff
+skinparam defaultTextAlignment center
+
+== Signature Generation (35-50ms) ==
+
+participant "Application" as app
+participant "KeyManager" as km
+participant "Keychain" as kc
+participant "@noble/curves" as noble
+participant "Hash" as h
+
+app -> km: sign(keyId, payload)
+
+km -> kc: getGenericPassword(keyId)
+note right of kc
+  Retrieval time: 10-20ms
+  Includes secure storage access
+end note
+kc --> km: privateKeyHex
+
+km -> h: sha256(JSON.stringify(payload))
+note right of h
+  Hash time: 2-5ms
+  Input: JSON string
+  Output: 32-byte hash
+end note
+h --> km: payloadHash
+
+km -> noble: p256.sign(hash, privateKey)
+note right of noble
+  Sign time: 30-45ms
+  ECDSA signature
+  Output: r || s (64 bytes)
+end note
+noble --> km: signature
+
+km -> km: bytesToBase64Url(signature)
+note right of km
+  Encoding time: 1-2ms
+  64 bytes → 88 characters
+  Result: base64url format
+end note
+
+km --> app: signatureBase64Url
+
+== Signature Verification ==
+
+participant "Verifier" as v
+participant "VerifyFn" as vf
+
+v -> vf: verifySignature(publicKeyJwk, payload, signature)
+
+vf -> vf: Reconstruct public key from JWK
+note right of vf
+  Extract x, y from JWK
+  Add uncompressed prefix 0x04
+  Result: 65-byte public key
+end note
+
+vf -> h: sha256(JSON.stringify(payload))
+note right of h
+  Same hash as signing
+  Must produce identical result
+end note
+h --> vf: payloadHash
+
+vf -> vf: base64UrlToBytes(signatureBase64Url)
+note right of vf
+  Decode signature
+  64 bytes: [r (32) || s (32)]
+end note
+
+vf -> noble: signature.verify(hash, publicKey)
+note right of noble
+  Verify time: 45-60ms
+  Returns: boolean
+  Uses public key only
+end note
+noble --> vf: isValid
+
+vf --> v: boolean result
+
+== Performance Summary ==
+
+participant "Perf" as p
+
+p -> p: Single signature: 35-50ms
+p -> p: Batch (10x): 365ms\n(optimized with cached key)
+p -> p: Batch (100x): 3500ms\n(with progress UI)
+
+@enduml
