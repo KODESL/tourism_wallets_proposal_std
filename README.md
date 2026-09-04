@@ -13,6 +13,16 @@ It is **not** the live BOGOWALLET stack (`bogo-ncw`, iOS, Android). Those remain
 
 Licence: [Apache-2.0](LICENSE).
 
+## Start here
+
+| Document | What it is |
+| --- | --- |
+| [STATUS.md](STATUS.md) | What is implemented vs stub vs missing (read before citing the OSS) |
+| [docs/architecture/REFERENCE.md](docs/architecture/REFERENCE.md) | Architecture of **this** repo (not the EUDI mobile prototype) |
+| [specs/tourism-profile.md](specs/tourism-profile.md) | Tourism Interoperability Profile working draft (D2.2 §6) |
+| [SECURITY.md](SECURITY.md) | Isolation rules: what must never land in this git tree |
+| [docs/fellowship/WG_BRIEF.md](docs/fellowship/WG_BRIEF.md) | Two-page brief for UNE CTN 71/SC 307 / ISO/TC 307 |
+
 ## Layout
 
 ```
@@ -50,6 +60,8 @@ npm test
 ```
 
 ## Roadmap (D2.2 §9.4)
+
+Tracked with evidence in [STATUS.md](STATUS.md):
 
 1. Issuance and online presentation — holder clients are in `packages/wallet`; issuer is still a stub
 2. Offline tiers 0–1 (mdoc) — not present in any source tree

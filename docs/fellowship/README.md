@@ -12,6 +12,9 @@ Fellow: Hugo Perez · Organisation: KODE DE HUGO A PEREZ SOLORZANO S.L. (Spain)
 
 Also: `original/tourism_wallet_bp.pdf`.
 
-Working notes for the Trust-Grants final report are in `reporting/`. They are not a deliverable.
+| Other | Path |
+| --- | --- |
+| Two-page WG/TC brief (UNE / ISO) | [WG_BRIEF.md](WG_BRIEF.md) |
+| Trust-Grants fill-pack (internal) | `reporting/` |
 
-Contracts, CVs and photos are **not** in this repository.
+Contracts, CVs and photos are **not** in this repository. If this repo is made public, move `reporting/` out first.
